@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use codeview::{editor, process_path, ProcessOptions, OutputFormat, Language, CodeviewError};
+use codeview::editor::BatchEdit;
 use std::{fs, io::{self, Read}, path::Path, process};
 
 #[derive(Parser)]
@@ -54,20 +55,29 @@ enum Commands {
         /// File to edit
         file: String,
         
-        /// Symbol name to edit
+        /// Symbol name to edit (not needed with --batch)
+        #[arg(default_value = "")]
         symbol: String,
         
         /// Replace the symbol with new source
-        #[arg(long, conflicts_with = "delete")]
+        #[arg(long, conflicts_with_all = ["delete", "replace_body", "batch"])]
         replace: Option<String>,
         
-        /// Read replacement from stdin
-        #[arg(long, requires = "replace")]
+        /// Replace only the body block, preserving signature/attributes
+        #[arg(long = "replace-body", conflicts_with_all = ["delete", "replace", "batch"])]
+        replace_body: Option<String>,
+        
+        /// Read replacement from stdin (works with --replace or --replace-body)
+        #[arg(long)]
         stdin: bool,
         
         /// Delete the symbol
-        #[arg(long, conflicts_with = "replace")]
+        #[arg(long, conflicts_with_all = ["replace", "replace_body", "batch"])]
         delete: bool,
+        
+        /// Apply batch edits from a JSON file
+        #[arg(long, conflicts_with_all = ["replace", "replace_body", "delete"])]
+        batch: Option<String>,
         
         /// Dry run - print to stdout instead of writing file
         #[arg(long)]
@@ -79,8 +89,8 @@ fn main() {
     let cli = Cli::parse();
     
     match cli.command {
-        Some(Commands::Edit { file, symbol, replace, stdin, delete, dry_run }) => {
-            if let Err(e) = handle_edit(&file, &symbol, replace, stdin, delete, dry_run) {
+        Some(Commands::Edit { file, symbol, replace, replace_body, stdin, delete, batch, dry_run }) => {
+            if let Err(e) = handle_edit(&file, &symbol, replace, replace_body, stdin, delete, batch, dry_run) {
                 eprintln!("Error: {}", e);
                 process::exit(1);
             }
@@ -129,8 +139,10 @@ fn handle_edit(
     file: &str,
     symbol: &str,
     replace: Option<String>,
+    replace_body: Option<String>,
     stdin: bool,
     delete: bool,
+    batch: Option<String>,
     dry_run: bool,
 ) -> Result<(), CodeviewError> {
     let path = Path::new(file);
@@ -146,8 +158,28 @@ fn handle_edit(
     
     let language = detect_language_from_path(path)?;
     
-    let result = if delete {
+    let result = if let Some(batch_file) = batch {
+        let batch_json = fs::read_to_string(&batch_file)
+            .map_err(|e| CodeviewError::ReadError {
+                path: batch_file.clone(),
+                source: e,
+            })?;
+        #[derive(serde::Deserialize)]
+        struct BatchInput { edits: Vec<BatchEdit> }
+        let input: BatchInput = serde_json::from_str(&batch_json)?;
+        editor::batch(&source, &input.edits, language)?
+    } else if delete {
         editor::delete(&source, symbol, language)?
+    } else if let Some(body_content) = replace_body {
+        let new_body = if stdin {
+            let mut buf = String::new();
+            io::stdin().read_to_string(&mut buf)
+                .map_err(|e| CodeviewError::ParseError(format!("Failed to read stdin: {}", e)))?;
+            buf
+        } else {
+            body_content
+        };
+        editor::replace_body(&source, symbol, &new_body, language)?
     } else if let Some(replacement) = replace {
         let new_content = if stdin {
             let mut buf = String::new();
@@ -160,7 +192,7 @@ fn handle_edit(
         editor::replace(&source, symbol, &new_content, language)?
     } else {
         return Err(CodeviewError::ParseError(
-            "Must specify either --replace or --delete".to_string()
+            "Must specify --replace, --replace-body, --delete, or --batch".to_string()
         ));
     };
     
