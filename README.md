@@ -1,6 +1,6 @@
 # codeview
 
-A code context extractor powered by [Tree-sitter](https://tree-sitter.github.io/). Shows the shape of a codebase — signatures, types, structure — without the noise.
+A code context extractor powered by [Tree-sitter](https://tree-sitter.github.io/). Shows the shape of a codebase — signatures, types, structure — without the noise. Supports symbol-aware editing.
 
 ## Install
 
@@ -12,6 +12,7 @@ cargo install --path .
 
 ```
 codeview [OPTIONS] <PATH> [SYMBOLS]...
+codeview edit <FILE> <SYMBOL> [--replace <SOURCE> | --delete] [--stdin] [--dry-run]
 ```
 
 ### Interface mode (default)
@@ -63,6 +64,25 @@ src/lib.rs::new [12:14]
 14 |     }
 ```
 
+### Edit mode
+
+Symbol-aware editing — replace or delete items by name:
+
+```sh
+# Replace a function (dry-run prints to stdout)
+$ codeview edit src/lib.rs helper --replace 'fn helper() { println!("new"); }' --dry-run
+
+# Delete a symbol (writes file in-place)
+$ codeview edit src/lib.rs helper --delete
+
+# Read replacement from stdin
+$ echo 'fn helper() { 42 }' | codeview edit src/lib.rs helper --replace --stdin
+```
+
+Edits are **validated** before writing — if the replacement produces invalid syntax (tree-sitter re-parse detects errors), the operation is rejected and the file is left untouched.
+
+Attributes are handled correctly: deleting `User` also removes its `#[derive(Debug, Clone)]`, and replacing a symbol includes its attributes in the replacement range.
+
 ### TypeScript example
 
 ```sh
@@ -99,7 +119,7 @@ $ codeview src/ --depth 1    # target dir + one level of subdirs
 
 In expand mode, directory traversal stops early once all requested symbols have been found — no need to parse remaining files.
 
-## Stats mode
+### Stats mode
 
 Show metadata instead of content — useful for context budgeting:
 
@@ -151,6 +171,8 @@ src/
 │   ├── rust.rs          # Rust-specific extractor
 │   ├── typescript.rs    # TypeScript/TSX extractor
 │   └── mod.rs           # Item/Visibility types, LanguageExtractor trait
+├── editor/              # Symbol-aware editing
+│   └── mod.rs           # replace, delete operations with validation
 ├── output/              # Formatters (plain text, JSON, stats)
 └── walk.rs              # Directory traversal (ignore crate, respects .gitignore)
 ```

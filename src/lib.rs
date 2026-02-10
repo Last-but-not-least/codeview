@@ -4,12 +4,14 @@ mod extractor;
 mod languages;
 mod output;
 mod walk;
+pub mod editor;
 
 use std::fs;
 use std::path::Path;
 
 pub use error::CodeviewError;
 pub use output::OutputFormat;
+pub use languages::Language;
 use extractor::{Item, ItemKind};
 
 /// Options for processing paths
