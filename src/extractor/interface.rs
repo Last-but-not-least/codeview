@@ -34,12 +34,34 @@ fn extract_with_extractor(source: &str, tree: &Tree, language: Language, extract
             None => continue,
         };
 
-        let kind_str = item_node.kind();
+        let mut kind_str = item_node.kind();
+        // For TS export_statement, use the inner declaration's kind
+        let inner_node = if kind_str == "export_statement" {
+            let mut inner = None;
+            let mut c = item_node.walk();
+            for child in item_node.children(&mut c) {
+                let ck = child.kind();
+                if ck != "export" && ck != ";" && ck != "default" && ck != "comment" {
+                    inner = Some(child);
+                    break;
+                }
+            }
+            inner
+        } else {
+            None
+        };
+        if let Some(inner) = inner_node {
+            kind_str = inner.kind();
+        }
 
-        let visibility = vis_idx
-            .and_then(|idx| m.captures.iter().find(|c| c.index == idx))
-            .map(|c| Visibility::from_node(Some(c.node), source))
-            .unwrap_or(Visibility::Private);
+        let visibility = if item_node.kind() == "export_statement" {
+            Visibility::Public
+        } else {
+            vis_idx
+                .and_then(|idx| m.captures.iter().find(|c| c.index == idx))
+                .map(|c| Visibility::from_node(Some(c.node), source))
+                .unwrap_or(Visibility::Private)
+        };
 
         let name = name_idx
             .and_then(|idx| m.captures.iter().find(|c| c.index == idx))
@@ -57,7 +79,7 @@ fn extract_with_extractor(source: &str, tree: &Tree, language: Language, extract
         let line_end = item_node.end_position().row + 1;
 
         let (content, line_mappings, has_body) = match kind_str {
-            "impl_item" | "trait_item" => {
+            "impl_item" | "trait_item" | "class_declaration" | "abstract_class_declaration" | "interface_declaration" => {
                 let (c, m) = collapse_block(source, effective_start_byte, item_node);
                 (c, m, false)
             }
@@ -102,8 +124,10 @@ fn extract_with_extractor(source: &str, tree: &Tree, language: Language, extract
             line_mappings: line_mappings.clone(),
         });
 
-        if matches!(kind_str, "impl_item" | "trait_item") {
-            extractor.extract_methods_from_block(source, item_node, &mut items_map);
+        if matches!(kind_str, "impl_item" | "trait_item" | "class_declaration" | "abstract_class_declaration") {
+            // For export_statement, pass the inner node so extract_methods_from_block can find "body"
+            let block_node = if let Some(inner) = inner_node { inner } else { item_node };
+            extractor.extract_methods_from_block(source, block_node, &mut items_map);
         }
     }
 

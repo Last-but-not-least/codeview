@@ -63,6 +63,30 @@ src/lib.rs::new [12:14]
 14 |     }
 ```
 
+### TypeScript example
+
+```sh
+$ codeview src/api.ts
+```
+
+```
+src/api.ts
+ 1 | import { Database } from "./db";
+ 3 | export interface User {
+ 4 |     name: string;
+ 5 |     age: number;
+ 6 |     email?: string;
+ 7 | }
+ 9 | export type UserId = string | number;
+11 | export class UserService {
+14 |     constructor(db: Database) { ... }
+18 |     public getUser(id: UserId): User | undefined { ... }
+22 |     public createUser(name: string, age: number): User { ... }
+27 |     private validate(user: User): boolean { ... }
+30 | }
+32 | export function parseUserId(raw: string): UserId { ... }
+```
+
 ### Directory mode
 
 Point at a directory to walk all supported files. Respects `.gitignore`, `.ignore`, and global gitignore — directories like `target/` and `node_modules/` are skipped automatically:
@@ -97,9 +121,9 @@ Also works with `--json` for structured output. Composes with all filters.
 
 | Flag         | Effect                                       |
 |--------------|----------------------------------------------|
-| `--pub`      | Only public items                            |
+| `--pub`      | Only public/exported items                   |
 | `--fns`      | Only functions and methods                   |
-| `--types`    | Only types (struct, enum, trait, type alias)  |
+| `--types`    | Only types (struct/class, enum, trait/interface, type alias) |
 | `--no-tests` | Exclude `#[cfg(test)] mod tests` blocks      |
 | `--depth N`  | Limit directory recursion (0 = target dir only) |
 | `--json`     | JSON output                                  |
@@ -110,6 +134,7 @@ Filters compose with union semantics — `--pub --fns` shows only public functio
 ## Supported languages
 
 - Rust
+- TypeScript / TSX
 
 ## Architecture
 
@@ -124,6 +149,7 @@ src/
 │   ├── expand.rs        # Expand mode (full source for symbols)
 │   ├── collapse.rs      # Body collapsing logic
 │   ├── rust.rs          # Rust-specific extractor
+│   ├── typescript.rs    # TypeScript/TSX extractor
 │   └── mod.rs           # Item/Visibility types, LanguageExtractor trait
 ├── output/              # Formatters (plain text, JSON, stats)
 └── walk.rs              # Directory traversal (ignore crate, respects .gitignore)

@@ -1,4 +1,5 @@
 pub mod rust;
+pub mod typescript;
 pub mod collapse;
 pub mod interface;
 pub mod expand;
@@ -42,6 +43,7 @@ pub enum ItemKind {
     Static,
     TypeAlias,
     MacroDef,
+    Class,
 }
 
 
@@ -117,6 +119,7 @@ impl Visibility {
 pub fn extractor_for(language: crate::languages::Language) -> Box<dyn LanguageExtractor> {
     match language {
         crate::languages::Language::Rust => Box::new(rust::RustExtractor),
+        crate::languages::Language::TypeScript | crate::languages::Language::Tsx => Box::new(typescript::TypeScriptExtractor),
     }
 }
 

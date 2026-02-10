@@ -1,4 +1,5 @@
 pub mod rust;
+pub mod typescript;
 
 use crate::error::CodeviewError;
 use std::path::Path;
@@ -6,6 +7,8 @@ use std::path::Path;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Language {
     Rust,
+    TypeScript,
+    Tsx,
 }
 
 /// Detect language from file extension
@@ -17,6 +20,8 @@ pub fn detect_language(path: &Path) -> Result<Language, CodeviewError> {
 
     match extension {
         "rs" => Ok(Language::Rust),
+        "ts" => Ok(Language::TypeScript),
+        "tsx" => Ok(Language::Tsx),
         _ => Err(CodeviewError::UnsupportedExtension(extension.to_string())),
     }
 }
@@ -25,7 +30,7 @@ pub fn detect_language(path: &Path) -> Result<Language, CodeviewError> {
 pub fn is_supported_file(path: &Path) -> bool {
     path.extension()
         .and_then(|e| e.to_str())
-        .map(|ext| ext == "rs")
+        .map(|ext| matches!(ext, "rs" | "ts" | "tsx"))
         .unwrap_or(false)
 }
 
@@ -33,6 +38,8 @@ pub fn is_supported_file(path: &Path) -> bool {
 pub fn ts_language(lang: Language) -> tree_sitter::Language {
     match lang {
         Language::Rust => tree_sitter_rust::LANGUAGE.into(),
+        Language::TypeScript => tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
+        Language::Tsx => tree_sitter_typescript::LANGUAGE_TSX.into(),
     }
 }
 
@@ -78,6 +85,8 @@ mod tests {
         assert!(!is_supported_file(Path::new("README.md")));
         assert!(!is_supported_file(Path::new("Makefile")));
         assert!(!is_supported_file(Path::new(".hidden")));
+        assert!(is_supported_file(Path::new("app.ts")));
+        assert!(is_supported_file(Path::new("component.tsx")));
     }
 
     #[test]

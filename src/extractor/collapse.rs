@@ -60,12 +60,12 @@ pub fn collapse_block(source: &str, start_byte: usize, block_node: Node) -> (Str
 fn collect_fn_bodies(node: Node, ranges: &mut Vec<(usize, usize)>) {
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
-        if child.kind() == "function_item" {
+        if child.kind() == "function_item" || child.kind() == "method_definition" {
             if let Some(body) = child.child_by_field_name("body") {
                 ranges.push((body.start_byte(), body.end_byte()));
             }
-        } else if child.kind() == "declaration_list" {
-            // Recurse into declaration_list (impl/trait body)
+        } else if child.kind() == "declaration_list" || child.kind() == "class_body" || child.kind() == "interface_body" || child.kind() == "class_declaration" || child.kind() == "abstract_class_declaration" || child.kind() == "interface_declaration" || child.kind() == "export_statement" {
+            // Recurse into block containers
             collect_fn_bodies(child, ranges);
         }
     }

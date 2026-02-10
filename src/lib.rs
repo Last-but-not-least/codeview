@@ -101,7 +101,7 @@ pub fn process_path(
                         let is_fn = matches!(item.kind, ItemKind::Function | ItemKind::Method);
                         let is_type = matches!(
                             item.kind,
-                            ItemKind::Struct | ItemKind::Enum | ItemKind::Trait | ItemKind::TypeAlias
+                            ItemKind::Struct | ItemKind::Enum | ItemKind::Trait | ItemKind::TypeAlias | ItemKind::Class
                         );
                         let mut matched = false;
                         if options.fns_only && is_fn { matched = true; }
