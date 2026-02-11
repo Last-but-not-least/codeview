@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>codeview - Code Context Extractor</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="hero">
+        <h1>codeview</h1>
+        <p class="tagline">A Tree-sitter-based code context extractor. See the shape of your codebase — signatures, types, structure — without the noise.</p>
+        <div class="install">
+          <code>curl -fsSL https://raw.githubusercontent.com/Last-but-not-least/codeview/main/install.sh | sh</code>
+        </div>
+        <div class="links">
+          <a href="https://github.com/Last-but-not-least/codeview" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/Last-but-not-least/codeview#readme" target="_blank" rel="noopener">Docs</a>
+        </div>
+      </header>
+
+      <main class="playground">
+        <div class="controls">
+          <div class="control-group">
+            <label for="language">Language:</label>
+            <select id="language">
+              <option value="rust">Rust</option>
+              <option value="typescript">TypeScript</option>
+              <option value="python">Python</option>
+              <option value="javascript">JavaScript</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="example">Example:</label>
+            <select id="example">
+              <option value="0">Example 1</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>
+              <input type="checkbox" id="expanded" />
+              Show expanded view
+            </label>
+          </div>
+        </div>
+
+        <div class="editor-container">
+          <div class="panel">
+            <div class="panel-header">Input Code</div>
+            <textarea id="input" spellcheck="false"></textarea>
+          </div>
+          <div class="panel">
+            <div class="panel-header">codeview Output</div>
+            <pre id="output"></pre>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
