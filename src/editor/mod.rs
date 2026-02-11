@@ -81,7 +81,11 @@ pub fn replace_body(
     
     // Build the new body block with proper indentation
     let reindented = reindent_body(new_body, original_indent);
-    let new_block = format!("{{\n{}\n{}}}", reindented, original_indent);
+    let new_block = if language.uses_braces_for_blocks() {
+        format!("{{\n{}\n{}}}", reindented, original_indent)
+    } else {
+        format!("\n{}", reindented)
+    };
     
     let mut result = String::new();
     result.push_str(&source[..body_start]);

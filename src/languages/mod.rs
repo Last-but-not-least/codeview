@@ -15,6 +15,13 @@ pub enum Language {
     JavaScript,
     Jsx,
 }
+impl Language {
+    /// Returns true for languages that use braces `{ }` for blocks (Rust, JS, TS, C, etc.).
+    /// Returns false for indentation-based languages (Python).
+    pub fn uses_braces_for_blocks(self) -> bool {
+        !matches!(self, Language::Python)
+    }
+}
 
 /// Detect language from file extension
 pub fn detect_language(path: &Path) -> Result<Language, CodeviewError> {

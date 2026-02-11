@@ -509,10 +509,12 @@ def calculate(x, y):
     // Provide a valid Python block (indented body lines)
     let new_body = "    result = x * y\n    return result";
 
-    // Currently replace_body wraps in { } braces which is invalid Python.
-    // This documents the current behavior — a fix would be a separate issue.
-    let result = editor::replace_body(source, "calculate", new_body, Language::Python);
-    assert!(result.is_err(), "replace_body currently does not support Python blocks (wraps in braces)");
+    let result = editor::replace_body(source, "calculate", new_body, Language::Python).unwrap();
+    assert!(result.contains("def calculate(x, y):"));
+    assert!(result.contains("result = x * y"));
+    assert!(result.contains("return result"));
+    assert!(!result.contains("return x + y"));
+    assert!(!result.contains("{"));
 }
 
 #[test]
