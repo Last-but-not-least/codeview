@@ -1,5 +1,4 @@
 use crate::error::CodeviewError;
-use crate::extractor::expand;
 use crate::extractor::find_attr_start;
 use crate::languages::{ts_language, Language};
 use crate::parser;
@@ -317,74 +316,18 @@ fn find_symbol_node<'a>(
     Err(CodeviewError::ParseError(format!("Symbol not found: {}", symbol_name)))
 }
 
-/// Find the byte range of a symbol using expand extraction.
-/// Returns (start_byte, end_byte) tuple.
+/// Find the byte range of a symbol (including attributes).
+/// Delegates to `find_symbol_node` and returns (start_byte, end_byte).
 fn find_symbol_range(
     source: &str,
     tree: &Tree,
     symbol_name: &str,
     language: Language,
 ) -> Result<(usize, usize), CodeviewError> {
-    let items = expand::extract(source, tree, &[symbol_name.to_string()], language);
-    
-    if items.is_empty() {
-        return Err(CodeviewError::ParseError(format!(
-            "Symbol not found: {}",
-            symbol_name
-        )));
-    }
-    
-    // We expect exactly one match
-    // The expand extraction gives us exactly one match
-    
-    // The expand extraction already uses find_attr_start, so we need to
-    // reconstruct the byte range from the content and line information.
-    // Actually, we need to re-run the query to get the actual node.
-    
-    // Re-run the query to get node byte ranges
-    let extractor = crate::extractor::extractor_for(language);
-    let ts_lang = ts_language(language);
-    let query = tree_sitter::Query::new(&ts_lang, extractor.expand_query())
-        .map_err(|e| CodeviewError::ParseError(format!("Query compilation failed: {}", e)))?;
-    
-    let mut cursor = tree_sitter::QueryCursor::new();
-    let source_bytes = source.as_bytes();
-    
-    let item_idx = query.capture_index_for_name("item")
-        .ok_or_else(|| CodeviewError::ParseError("Query missing 'item' capture".to_string()))?;
-    let name_idx = query.capture_index_for_name("name");
-    let impl_type_idx = query.capture_index_for_name("impl_type");
-    
-    let mut matches_iter = cursor.matches(&query, tree.root_node(), source_bytes);
-    
-    while let Some(m) = matches_iter.next() {
-        let item_node = match m.captures.iter().find(|c| c.index == item_idx) {
-            Some(c) => c.node,
-            None => continue,
-        };
-        
-        let name = name_idx
-            .and_then(|idx| m.captures.iter().find(|c| c.index == idx))
-            .map(|c| source[c.node.byte_range()].to_string())
-            .or_else(|| {
-                impl_type_idx
-                    .and_then(|idx| m.captures.iter().find(|c| c.index == idx))
-                    .map(|c| source[c.node.byte_range()].to_string())
-            });
-        
-        if let Some(ref n) = name {
-            if n == symbol_name {
-                let (start_byte, _line_start) = find_attr_start(item_node);
-                let end_byte = item_node.end_byte();
-                return Ok((start_byte, end_byte));
-            }
-        }
-    }
-    
-    Err(CodeviewError::ParseError(format!(
-        "Symbol not found: {}",
-        symbol_name
-    )))
+    let node = find_symbol_node(source, tree, symbol_name, language)?;
+    let (start_byte, _line_start) = find_attr_start(node);
+    let end_byte = node.end_byte();
+    Ok((start_byte, end_byte))
 }
 
 /// Validate the result by re-parsing and checking for errors.
