@@ -1,5 +1,7 @@
 pub mod rust;
 pub mod typescript;
+pub mod javascript;
+pub mod python;
 pub mod collapse;
 pub mod interface;
 pub mod expand;
@@ -120,6 +122,8 @@ pub fn extractor_for(language: crate::languages::Language) -> Box<dyn LanguageEx
     match language {
         crate::languages::Language::Rust => Box::new(rust::RustExtractor),
         crate::languages::Language::TypeScript | crate::languages::Language::Tsx => Box::new(typescript::TypeScriptExtractor),
+        crate::languages::Language::Python => Box::new(python::PythonExtractor),
+        crate::languages::Language::JavaScript | crate::languages::Language::Jsx => Box::new(javascript::JavaScriptExtractor),
     }
 }
 

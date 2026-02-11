@@ -119,6 +119,63 @@ src/api.ts
 32 | export function parseUserId(raw: string): UserId { ... }
 ```
 
+### Python support
+
+Works with `.py` files. The `_private` naming convention maps to private visibility:
+
+```sh
+$ codeview app.py
+```
+
+```
+app.py
+ 1 | import os
+ 2 | from dataclasses import dataclass
+
+ 4 | @dataclass
+ 5 | class Config:
+ 6 |     host: str
+ 7 |     port: int
+ 8 |     _secret: str
+
+11 | class App:
+12 |     def __init__(self, config: Config): ...
+15 |     def run(self): ...
+18 |     def handle_request(self, path: str) -> dict: ...
+22 |     def _validate(self, data: dict) -> bool: ...
+
+25 | def create_app(env: str = "dev") -> App: ...
+
+28 | def _load_defaults() -> dict: ...
+```
+
+Names starting with `_` are treated as private — `--pub` will hide `_validate`, `_load_defaults`, and `_secret`.
+
+### JavaScript support
+
+Works with `.js` and `.jsx` files:
+
+```sh
+$ codeview api.js
+```
+
+```
+api.js
+ 1 | import express from "express";
+
+ 3 | export class Router {
+ 4 |     constructor(prefix) { ... }
+ 7 |     get(path, handler) { ... }
+10 |     post(path, handler) { ... }
+13 | }
+
+15 | export function createApp(config) { ... }
+
+19 | function loadMiddleware(name) { ... }
+
+22 | export default Router;
+```
+
 ## Filters
 
 | Flag         | Effect                                       |
@@ -126,7 +183,7 @@ src/api.ts
 | `--pub`      | Only public/exported items                   |
 | `--fns`      | Only functions and methods                   |
 | `--types`    | Only types (struct/class, enum, trait/interface, type alias) |
-| `--no-tests` | Exclude `#[cfg(test)] mod tests` blocks      |
+| `--no-tests` | Exclude test blocks (`#[cfg(test)]` in Rust)  |
 | `--depth N`  | Limit directory recursion (0 = target dir only) |
 | `--json`     | JSON output                                  |
 | `--stats`    | Show file/item counts instead of content     |
@@ -208,14 +265,18 @@ src/
 ├── languages/           # Language detection + grammar queries
 │   ├── mod.rs           # Language enum, detection, TS language loader
 │   ├── rust.rs          # Rust tree-sitter queries
-│   └── typescript.rs    # TypeScript/TSX tree-sitter queries
+│   ├── typescript.rs    # TypeScript/TSX tree-sitter queries
+│   ├── python.rs        # Python tree-sitter queries
+│   └── javascript.rs    # JavaScript/JSX tree-sitter queries
 ├── extractor/           # Item extraction from AST
 │   ├── mod.rs           # Item/ItemKind/Visibility types, LanguageExtractor trait
 │   ├── interface.rs     # Interface mode (collapsed bodies)
 │   ├── expand.rs        # Expand mode (full source for named symbols)
 │   ├── collapse.rs      # Body collapsing logic
 │   ├── rust.rs          # Rust-specific extraction (impl blocks, fn signatures)
-│   └── typescript.rs    # TypeScript/TSX-specific extraction
+│   ├── typescript.rs    # TypeScript/TSX-specific extraction
+│   ├── python.rs        # Python-specific extraction (classes, decorators)
+│   └── javascript.rs    # JavaScript/JSX-specific extraction
 ├── editor/              # Symbol-aware editing
 │   └── mod.rs           # replace, replace_body, delete, batch — with validation
 ├── output/              # Formatters
@@ -229,8 +290,9 @@ src/
 ## Supported Languages
 
 - Rust (`.rs`)
-- TypeScript (`.ts`)
-- TSX (`.tsx`)
+- TypeScript (`.ts`, `.tsx`)
+- Python (`.py`)
+- JavaScript (`.js`, `.jsx`)
 
 ## License
 

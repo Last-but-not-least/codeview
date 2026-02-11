@@ -217,6 +217,8 @@ fn find_body_node<'a>(item_node: Node<'a>, language: Language) -> Result<Node<'a
     let body_kinds = match language {
         Language::Rust => &["block"][..],
         Language::TypeScript | Language::Tsx => &["statement_block"][..],
+        Language::JavaScript | Language::Jsx => &["statement_block"][..],
+        Language::Python => &["block"][..],
     };
     
     // First try the `body` field (works for functions)

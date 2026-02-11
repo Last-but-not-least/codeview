@@ -1,5 +1,7 @@
 pub mod rust;
 pub mod typescript;
+pub mod python;
+pub mod javascript;
 
 use crate::error::CodeviewError;
 use std::path::Path;
@@ -9,6 +11,9 @@ pub enum Language {
     Rust,
     TypeScript,
     Tsx,
+    Python,
+    JavaScript,
+    Jsx,
 }
 
 /// Detect language from file extension
@@ -22,6 +27,9 @@ pub fn detect_language(path: &Path) -> Result<Language, CodeviewError> {
         "rs" => Ok(Language::Rust),
         "ts" => Ok(Language::TypeScript),
         "tsx" => Ok(Language::Tsx),
+        "js" => Ok(Language::JavaScript),
+        "jsx" => Ok(Language::Jsx),
+        "py" => Ok(Language::Python),
         _ => Err(CodeviewError::UnsupportedExtension(extension.to_string())),
     }
 }
@@ -30,7 +38,7 @@ pub fn detect_language(path: &Path) -> Result<Language, CodeviewError> {
 pub fn is_supported_file(path: &Path) -> bool {
     path.extension()
         .and_then(|e| e.to_str())
-        .map(|ext| matches!(ext, "rs" | "ts" | "tsx"))
+        .map(|ext| matches!(ext, "rs" | "ts" | "tsx" | "py"))
         .unwrap_or(false)
 }
 
@@ -40,6 +48,8 @@ pub fn ts_language(lang: Language) -> tree_sitter::Language {
         Language::Rust => tree_sitter_rust::LANGUAGE.into(),
         Language::TypeScript => tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
         Language::Tsx => tree_sitter_typescript::LANGUAGE_TSX.into(),
+        Language::JavaScript | Language::Jsx => tree_sitter_javascript::LANGUAGE.into(),
+        Language::Python => tree_sitter_python::LANGUAGE.into(),
     }
 }
 
@@ -57,7 +67,7 @@ mod tests {
 
     #[test]
     fn detect_language_unsupported() {
-        let err = detect_language(Path::new("foo.py")).unwrap_err();
+        let err = detect_language(Path::new("foo.rb")).unwrap_err();
         assert!(err.to_string().contains("Unsupported"));
     }
 
@@ -81,7 +91,7 @@ mod tests {
 
     #[test]
     fn is_supported_file_not_rs() {
-        assert!(!is_supported_file(Path::new("main.py")));
+        assert!(!is_supported_file(Path::new("main.rb")));
         assert!(!is_supported_file(Path::new("README.md")));
         assert!(!is_supported_file(Path::new("Makefile")));
         assert!(!is_supported_file(Path::new(".hidden")));

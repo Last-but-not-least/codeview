@@ -10,6 +10,8 @@ pub fn parse(source: &str, language: Language) -> Result<Tree, CodeviewError> {
         Language::Rust => tree_sitter_rust::LANGUAGE.into(),
         Language::TypeScript => tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
         Language::Tsx => tree_sitter_typescript::LANGUAGE_TSX.into(),
+        Language::Python => tree_sitter_python::LANGUAGE.into(),
+        Language::JavaScript | Language::Jsx => tree_sitter_javascript::LANGUAGE.into(),
     };
 
     parser
