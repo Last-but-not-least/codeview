@@ -4,6 +4,33 @@ A code context extractor powered by [Tree-sitter](https://tree-sitter.github.io/
 
 ## Install
 
+### Quick install (Linux / macOS)
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Last-but-not-least/codeview/main/install.sh | sh
+```
+
+This auto-detects your OS and architecture, downloads the latest release binary, and installs to `/usr/local/bin`. Set `INSTALL_DIR` to change the location, or `VERSION` to pin a specific version:
+
+```sh
+INSTALL_DIR=~/.local/bin VERSION=v0.0.1 curl -fsSL https://raw.githubusercontent.com/Last-but-not-least/codeview/main/install.sh | sh
+```
+
+### Download from GitHub Releases
+
+Prebuilt binaries for every release: [GitHub Releases](https://github.com/Last-but-not-least/codeview/releases)
+
+| Target | Archive |
+|--------|---------|
+| Linux x86_64 (static/musl) | `codeview-<version>-x86_64-unknown-linux-musl.tar.gz` |
+| Linux aarch64 | `codeview-<version>-aarch64-unknown-linux-gnu.tar.gz` |
+| macOS x86_64 | `codeview-<version>-x86_64-apple-darwin.tar.gz` |
+| macOS Apple Silicon | `codeview-<version>-aarch64-apple-darwin.tar.gz` |
+
+Each release includes a `checksums.sha256` file for verification.
+
+### Build from source
+
 ```sh
 cargo install --path .
 ```
@@ -293,6 +320,40 @@ src/
 - TypeScript (`.ts`, `.tsx`)
 - Python (`.py`)
 - JavaScript (`.js`, `.jsx`)
+
+## OpenClaw Skill
+
+codeview ships as an [OpenClaw](https://openclaw.ai) agent skill, letting AI agents read and edit code with full structural awareness.
+
+### Setup
+
+1. Install the `codeview` binary (see [Install](#install))
+2. Copy the `skill/` directory into your OpenClaw workspace skills folder:
+
+```sh
+cp -r skill/ ~/.openclaw/workspace/skills/codeview/
+```
+
+3. The agent will automatically use codeview instead of raw file reads for `.rs`, `.ts`, `.tsx`, `.py`, `.js`, and `.jsx` files.
+
+### What the skill provides
+
+- **Structural reading** — agents see file shapes (signatures, types, fields) without drowning in implementation details
+- **Targeted expansion** — agents can expand specific symbols to read only the code they need
+- **Symbol-aware editing** — replace, replace-body, delete, and batch edits with automatic syntax validation
+- **Directory browsing** — walk entire crates/packages with filters (`--pub`, `--fns`, `--types`, `--no-tests`)
+
+### Example agent workflow
+
+```
+1. Browse:  codeview src/           → see project shape
+2. Focus:   codeview src/lib.rs     → see file interface
+3. Read:    codeview src/lib.rs foo  → read specific function
+4. Edit:    codeview edit src/lib.rs foo --replace-body '{ new_impl }'
+5. Verify:  codeview src/lib.rs foo  → confirm the edit
+```
+
+The skill dramatically reduces token usage compared to reading full files, and the syntax validation on edits prevents agents from introducing parse errors.
 
 ## License
 
