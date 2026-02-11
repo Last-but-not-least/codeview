@@ -38,7 +38,7 @@ pub fn detect_language(path: &Path) -> Result<Language, CodeviewError> {
 pub fn is_supported_file(path: &Path) -> bool {
     path.extension()
         .and_then(|e| e.to_str())
-        .map(|ext| matches!(ext, "rs" | "ts" | "tsx" | "py"))
+        .map(|ext| matches!(ext, "rs" | "ts" | "tsx" | "js" | "jsx" | "py"))
         .unwrap_or(false)
 }
 

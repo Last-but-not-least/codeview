@@ -279,6 +279,9 @@ fn detect_language_from_path(path: &Path) -> Result<Language, CodeviewError> {
         "rs" => Ok(Language::Rust),
         "ts" => Ok(Language::TypeScript),
         "tsx" => Ok(Language::Tsx),
+        "js" => Ok(Language::JavaScript),
+        "jsx" => Ok(Language::Jsx),
+        "py" => Ok(Language::Python),
         _ => Err(CodeviewError::UnsupportedExtension(ext.to_string())),
     }
 }
