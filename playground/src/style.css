@@ -87,9 +87,16 @@ body {
 
 .controls {
   display: flex;
-  gap: 2rem;
+  flex-direction: column;
+  gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+.control-row {
+  display: flex;
+  gap: 1.5rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .control-group {
@@ -101,20 +108,39 @@ body {
 .control-group label {
   color: var(--text-dim);
   font-size: 13px;
+  white-space: nowrap;
 }
 
-select {
+select,
+input[type="text"] {
   background: var(--bg-elevated);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0.4rem 0.8rem;
   font-size: 13px;
+}
+
+select {
   cursor: pointer;
 }
 
-select:hover {
+select:hover,
+input[type="text"]:hover {
   border-color: var(--accent-dim);
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+input[type="text"]::placeholder {
+  color: var(--text-dim);
+}
+
+#symbols {
+  min-width: 200px;
 }
 
 input[type="checkbox"] {

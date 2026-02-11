@@ -21,26 +21,65 @@
 
       <main class="playground">
         <div class="controls">
-          <div class="control-group">
-            <label for="language">Language:</label>
-            <select id="language">
-              <option value="rust">Rust</option>
-              <option value="typescript">TypeScript</option>
-              <option value="python">Python</option>
-              <option value="javascript">JavaScript</option>
-            </select>
+          <div class="control-row">
+            <div class="control-group">
+              <label for="language">Language:</label>
+              <select id="language">
+                <option value="rust">Rust</option>
+                <option value="typescript">TypeScript</option>
+                <option value="python">Python</option>
+                <option value="javascript">JavaScript</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="example">Example:</label>
+              <select id="example">
+                <option value="0">Example 1</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="symbols">Expand symbols:</label>
+              <input type="text" id="symbols" placeholder="symbol1, symbol2..." />
+            </div>
           </div>
-          <div class="control-group">
-            <label for="example">Example:</label>
-            <select id="example">
-              <option value="0">Example 1</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label>
-              <input type="checkbox" id="expanded" />
-              Show expanded view
-            </label>
+          
+          <div class="control-row">
+            <div class="control-group">
+              <label>
+                <input type="checkbox" id="pub-only" />
+                Public only (--pub)
+              </label>
+            </div>
+            <div class="control-group">
+              <label>
+                <input type="checkbox" id="fns-only" />
+                Functions only (--fns)
+              </label>
+            </div>
+            <div class="control-group">
+              <label>
+                <input type="checkbox" id="types-only" />
+                Types only (--types)
+              </label>
+            </div>
+            <div class="control-group">
+              <label>
+                <input type="checkbox" id="no-tests" />
+                Exclude tests (--no-tests)
+              </label>
+            </div>
+            <div class="control-group">
+              <label>
+                <input type="checkbox" id="json-output" />
+                JSON output (--json)
+              </label>
+            </div>
+            <div class="control-group">
+              <label>
+                <input type="checkbox" id="stats-output" />
+                Stats (--stats)
+              </label>
+            </div>
           </div>
         </div>
 

@@ -3,5 +3,6 @@ export default {
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+    emptyOutDir: true
   }
 }
