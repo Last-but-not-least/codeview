@@ -12,7 +12,9 @@ fn opts() -> ProcessOptions {
         depth: None,
         format: OutputFormat::Plain,
         stats: false,
+        ext: vec![],
     }
+
 }
 
 fn write_js(content: &str) -> NamedTempFile {
