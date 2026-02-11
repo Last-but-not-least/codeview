@@ -2,6 +2,8 @@
 
 A code context extractor powered by [Tree-sitter](https://tree-sitter.github.io/). Shows the shape of a codebase — signatures, types, structure — without the noise. Supports symbol-aware editing.
 
+**[Try the playground →](https://last-but-not-least.github.io/codeview/)**
+
 ## Install
 
 ### Quick install (Linux / macOS)
@@ -96,7 +98,10 @@ Point at a directory to walk all supported files:
 $ codeview src/
 $ codeview src/ --depth 0    # target dir only, no subdirs
 $ codeview src/ --depth 1    # one level deep
+$ codeview src/ --ext rs,ts  # only .rs and .ts files
 ```
+
+Use `--ext` to filter by file extension (comma-separated, without the dot).
 
 Respects `.gitignore`, `.ignore`, and global gitignore — `target/`, `node_modules/`, etc. are skipped automatically.
 
@@ -212,6 +217,7 @@ api.js
 | `--types`    | Only types (struct/class, enum, trait/interface, type alias) |
 | `--no-tests` | Exclude test blocks (`#[cfg(test)]` in Rust)  |
 | `--depth N`  | Limit directory recursion (0 = target dir only) |
+| `--ext rs,ts` | Filter directory walk by file extension (comma-separated) |
 | `--json`     | JSON output                                  |
 | `--stats`    | Show file/item counts instead of content     |
 
@@ -272,6 +278,14 @@ $ codeview edit src/lib.rs --batch edits.json
 ```
 
 Actions: `replace`, `replace-body`, `delete`. The `content` field is required for replace/replace-body, ignored for delete.
+
+### JSON output
+
+Add `--json` to any edit command to get structured JSON metadata about what changed:
+
+```sh
+$ codeview edit src/lib.rs helper --replace 'fn helper() {}' --json
+```
 
 ### Dry run
 
