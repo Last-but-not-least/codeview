@@ -25,7 +25,6 @@ pub const INTERFACE_QUERY: &str = r#"
     (class_declaration
       name: (type_identifier) @name
       body: (class_body) @body)) @item)
-; Top-level abstract class declarations(program  (abstract_class_declaration    name: (type_identifier) @name    body: (class_body) @body) @item); Exported abstract class declarations(program  (export_statement    (abstract_class_declaration      name: (type_identifier) @name      body: (class_body) @body)) @item)
 
 ; Top-level abstract class declarations
 (program
