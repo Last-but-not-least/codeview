@@ -12,7 +12,9 @@ fn test_interface_mode_basic() {
         types_only: false, no_tests: false,
         depth: None,
         format: OutputFormat::Plain, stats: false,
-    };
+        ext: vec![],
+    
+};
     
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -37,7 +39,9 @@ fn test_expand_mode() {
         types_only: false, no_tests: false,
         depth: None,
         format: OutputFormat::Plain, stats: false,
-    };
+        ext: vec![],
+    
+};
     
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -59,7 +63,9 @@ fn test_expand_function() {
         types_only: false, no_tests: false,
         depth: None,
         format: OutputFormat::Plain, stats: false,
-    };
+        ext: vec![],
+    
+};
     
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -79,7 +85,9 @@ fn test_pub_filter() {
         types_only: false, no_tests: false,
         depth: None,
         format: OutputFormat::Plain, stats: false,
-    };
+        ext: vec![],
+    
+};
     
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -102,7 +110,9 @@ fn test_fns_filter() {
         types_only: false, no_tests: false,
         depth: None,
         format: OutputFormat::Plain, stats: false,
-    };
+        ext: vec![],
+    
+};
     
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -126,7 +136,9 @@ fn test_types_filter() {
         types_only: true, no_tests: false,
         depth: None,
         format: OutputFormat::Plain, stats: false,
-    };
+        ext: vec![],
+    
+};
     
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -151,7 +163,9 @@ fn test_combined_pub_fns() {
         types_only: false, no_tests: false,
         depth: None,
         format: OutputFormat::Plain, stats: false,
-    };
+        ext: vec![],
+    
+};
     
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -178,7 +192,9 @@ fn test_json_output() {
         types_only: false, no_tests: false,
         depth: None,
         format: OutputFormat::Json, stats: false,
-    };
+        ext: vec![],
+    
+};
     
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -206,7 +222,9 @@ fn test_nonexistent_path() {
         types_only: false, no_tests: false,
         depth: None,
         format: OutputFormat::Plain, stats: false,
-    };
+        ext: vec![],
+    
+};
     
     let result = process_path("nonexistent/path/file.rs", options);
     
@@ -223,7 +241,9 @@ fn test_directory_mode() {
         types_only: false, no_tests: false,
         depth: Some(1),
         format: OutputFormat::Plain, stats: false,
-    };
+        ext: vec![],
+    
+};
     
     let result = process_path(FIXTURE_DIR, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -243,7 +263,9 @@ fn test_expand_nonexistent_symbol() {
         types_only: false, no_tests: false,
         depth: None,
         format: OutputFormat::Plain, stats: false,
-    };
+        ext: vec![],
+    
+};
     
     let result = process_path(FIXTURE_PATH, options);
     
@@ -267,7 +289,9 @@ fn test_no_tests_filter() {
         depth: None,
         format: OutputFormat::Plain,
         stats: false,
-    };
+        ext: vec![],
+    
+};
 
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -294,7 +318,9 @@ fn test_no_tests_filter_disabled() {
         depth: None,
         format: OutputFormat::Plain,
         stats: false,
-    };
+        ext: vec![],
+    
+};
 
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -315,7 +341,9 @@ fn test_stats_output_plain() {
         depth: None,
         format: OutputFormat::Plain,
         stats: true,
-    };
+        ext: vec![],
+    
+};
 
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -340,7 +368,9 @@ fn test_stats_output_json() {
         depth: None,
         format: OutputFormat::Json,
         stats: true,
-    };
+        ext: vec![],
+    
+};
 
     let result = process_path(FIXTURE_PATH, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());
@@ -366,7 +396,9 @@ fn test_stats_with_directory() {
         depth: None,
         format: OutputFormat::Plain,
         stats: true,
-    };
+        ext: vec![],
+    
+};
 
     let result = process_path(FIXTURE_DIR, options);
     assert!(result.is_ok(), "process_path failed: {:?}", result.err());

@@ -46,6 +46,10 @@ struct Cli {
     /// Show stats (file count, lines, bytes, tokens, items) instead of content
     #[arg(long)]
     stats: bool,
+
+    /// Filter by file extensions (comma-separated, e.g. --ext rs,ts)
+    #[arg(long, value_delimiter = ',')]
+    ext: Vec<String>,
 }
 
 #[derive(Subcommand)]
@@ -124,6 +128,7 @@ fn main() {
                 depth: cli.depth,
                 format,
                 stats: cli.stats,
+                ext: cli.ext,
             };
             
             match process_path(&path, options) {

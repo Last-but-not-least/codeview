@@ -24,6 +24,7 @@ pub struct ProcessOptions {
     pub depth: Option<usize>,
     pub format: OutputFormat,
     pub stats: bool,
+    pub ext: Vec<String>,
 }
 
 /// Process a file or directory and return formatted output
@@ -45,7 +46,7 @@ pub fn process_path(
         source_sizes.push((lines, bytes));
         vec![(path.to_string_lossy().to_string(), items)]
     } else if path.is_dir() {
-        let files = walk::walk_directory(path, options.depth)?;
+        let files = walk::walk_directory(path, options.depth, &options.ext)?;
         let mut results = Vec::new();
         // Track which symbols still need to be found for early exit in expand mode
         let mut remaining_symbols: Vec<&str> = if expand_mode {
