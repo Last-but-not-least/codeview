@@ -30,6 +30,7 @@ jobs:
       - name: Build playground
         run: |
           cd playground
+          npm ci
           npm run build
 
       - name: Setup Pages
