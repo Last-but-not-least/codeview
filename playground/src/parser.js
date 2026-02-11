@@ -359,10 +359,8 @@ function formatInterfaceView(lines, items) {
 function formatExpandedView(items, lines) {
   const output = []
   
-  // Show first few interesting items in full
-  const itemsToExpand = items.filter(item => 
-    item.type === 'function' || item.type === 'class'
-  ).slice(0, 2)
+  // Show first few interesting items in full (all types)
+  const itemsToExpand = items.slice(0, 3)
   
   for (const item of itemsToExpand) {
     output.push(`${item.name} [${item.startLine}:${item.endLine + 1}]`)
