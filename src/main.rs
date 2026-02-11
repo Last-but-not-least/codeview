@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use codeview::{editor, process_path, ProcessOptions, OutputFormat, Language, CodeviewError};
-use codeview::editor::BatchEdit;
+use codeview::editor::{BatchEdit, EditResult};
 use std::{fs, io::{self, Read}, path::Path, process};
 
 #[derive(Parser)]
@@ -82,6 +82,10 @@ enum Commands {
         /// Dry run - print to stdout instead of writing file
         #[arg(long)]
         dry_run: bool,
+        
+        /// Output JSON metadata about what changed
+        #[arg(long)]
+        json: bool,
     },
 }
 
@@ -89,8 +93,8 @@ fn main() {
     let cli = Cli::parse();
     
     match cli.command {
-        Some(Commands::Edit { file, symbol, replace, replace_body, stdin, delete, batch, dry_run }) => {
-            if let Err(e) = handle_edit(&file, &symbol, replace, replace_body, stdin, delete, batch, dry_run) {
+        Some(Commands::Edit { file, symbol, replace, replace_body, stdin, delete, batch, dry_run, json }) => {
+            if let Err(e) = handle_edit(&file, &symbol, replace, replace_body, stdin, delete, batch, dry_run, json) {
                 eprintln!("Error: {}", e);
                 process::exit(1);
             }
@@ -144,6 +148,7 @@ fn handle_edit(
     delete: bool,
     batch: Option<String>,
     dry_run: bool,
+    json: bool,
 ) -> Result<(), CodeviewError> {
     let path = Path::new(file);
     if !path.exists() {
@@ -158,6 +163,9 @@ fn handle_edit(
     
     let language = detect_language_from_path(path)?;
     
+    // Compute edit metadata before performing the edit (line ranges from original source)
+    let mut edit_results: Vec<EditResult> = Vec::new();
+    
     let result = if let Some(batch_file) = batch {
         let batch_json = fs::read_to_string(&batch_file)
             .map_err(|e| CodeviewError::ReadError {
@@ -167,8 +175,35 @@ fn handle_edit(
         #[derive(serde::Deserialize)]
         struct BatchInput { edits: Vec<BatchEdit> }
         let input: BatchInput = serde_json::from_str(&batch_json)?;
+        
+        if json {
+            for edit in &input.edits {
+                let (line_start, line_end) = editor::symbol_line_range(&source, &edit.symbol, language)?;
+                let action = match edit.action {
+                    editor::BatchAction::Replace => "replaced",
+                    editor::BatchAction::ReplaceBody => "replaced_body",
+                    editor::BatchAction::Delete => "deleted",
+                };
+                edit_results.push(EditResult {
+                    symbol: edit.symbol.clone(),
+                    action: action.to_string(),
+                    line_start,
+                    line_end,
+                });
+            }
+        }
+        
         editor::batch(&source, &input.edits, language)?
     } else if delete {
+        if json {
+            let (line_start, line_end) = editor::symbol_line_range(&source, symbol, language)?;
+            edit_results.push(EditResult {
+                symbol: symbol.to_string(),
+                action: "deleted".to_string(),
+                line_start,
+                line_end,
+            });
+        }
         editor::delete(&source, symbol, language)?
     } else if let Some(body_content) = replace_body {
         let new_body = if stdin {
@@ -179,6 +214,15 @@ fn handle_edit(
         } else {
             body_content
         };
+        if json {
+            let (line_start, line_end) = editor::symbol_line_range(&source, symbol, language)?;
+            edit_results.push(EditResult {
+                symbol: symbol.to_string(),
+                action: "replaced_body".to_string(),
+                line_start,
+                line_end,
+            });
+        }
         editor::replace_body(&source, symbol, &new_body, language)?
     } else if let Some(replacement) = replace {
         let new_content = if stdin {
@@ -189,6 +233,15 @@ fn handle_edit(
         } else {
             replacement
         };
+        if json {
+            let (line_start, line_end) = editor::symbol_line_range(&source, symbol, language)?;
+            edit_results.push(EditResult {
+                symbol: symbol.to_string(),
+                action: "replaced".to_string(),
+                line_start,
+                line_end,
+            });
+        }
         editor::replace(&source, symbol, &new_content, language)?
     } else {
         return Err(CodeviewError::ParseError(
@@ -199,11 +252,19 @@ fn handle_edit(
     if dry_run {
         print!("{}", result);
     } else {
-        fs::write(path, result)
+        fs::write(path, &result)
             .map_err(|e| CodeviewError::ReadError {
                 path: file.to_string(),
                 source: e,
             })?;
+    }
+    
+    if json {
+        if edit_results.len() == 1 {
+            println!("{}", serde_json::to_string(&edit_results[0]).unwrap());
+        } else {
+            println!("{}", serde_json::to_string(&edit_results).unwrap());
+        }
     }
     
     Ok(())

@@ -168,6 +168,28 @@ pub fn batch(
     Ok(result)
 }
 
+/// Result metadata for a single edit operation (used with --json output).
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct EditResult {
+    pub symbol: String,
+    pub action: String,
+    pub line_start: usize,
+    pub line_end: usize,
+}
+
+/// Get the 1-based line range of a symbol (including attributes).
+pub fn symbol_line_range(
+    source: &str,
+    symbol_name: &str,
+    language: Language,
+) -> Result<(usize, usize), CodeviewError> {
+    let tree = parser::parse(source, language)?;
+    let (start_byte, end_byte) = find_symbol_range(source, &tree, symbol_name, language)?;
+    let line_start = source[..start_byte].matches('\n').count() + 1;
+    let line_end = source[..end_byte].matches('\n').count() + 1;
+    Ok((line_start, line_end))
+}
+
 /// A single edit in a batch operation.
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct BatchEdit {
