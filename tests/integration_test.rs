@@ -13,6 +13,7 @@ fn test_interface_mode_basic() {
         depth: None,
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
+        signatures: false,
     
 };
     
@@ -40,6 +41,7 @@ fn test_expand_mode() {
         depth: None,
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
+        signatures: false,
     
 };
     
@@ -64,6 +66,7 @@ fn test_expand_function() {
         depth: None,
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
+        signatures: false,
     
 };
     
@@ -86,6 +89,7 @@ fn test_pub_filter() {
         depth: None,
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
+        signatures: false,
     
 };
     
@@ -111,6 +115,7 @@ fn test_fns_filter() {
         depth: None,
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
+        signatures: false,
     
 };
     
@@ -137,6 +142,7 @@ fn test_types_filter() {
         depth: None,
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
+        signatures: false,
     
 };
     
@@ -164,6 +170,7 @@ fn test_combined_pub_fns() {
         depth: None,
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
+        signatures: false,
     
 };
     
@@ -193,6 +200,7 @@ fn test_json_output() {
         depth: None,
         format: OutputFormat::Json, stats: false,
         ext: vec![],
+        signatures: false,
     
 };
     
@@ -223,6 +231,7 @@ fn test_nonexistent_path() {
         depth: None,
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
+        signatures: false,
     
 };
     
@@ -242,6 +251,7 @@ fn test_directory_mode() {
         depth: Some(1),
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
+        signatures: false,
     
 };
     
@@ -264,6 +274,7 @@ fn test_expand_nonexistent_symbol() {
         depth: None,
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
+        signatures: false,
     
 };
     
@@ -290,6 +301,7 @@ fn test_no_tests_filter() {
         format: OutputFormat::Plain,
         stats: false,
         ext: vec![],
+        signatures: false,
     
 };
 
@@ -319,6 +331,7 @@ fn test_no_tests_filter_disabled() {
         format: OutputFormat::Plain,
         stats: false,
         ext: vec![],
+        signatures: false,
     
 };
 
@@ -342,6 +355,7 @@ fn test_stats_output_plain() {
         format: OutputFormat::Plain,
         stats: true,
         ext: vec![],
+        signatures: false,
     
 };
 
@@ -369,6 +383,7 @@ fn test_stats_output_json() {
         format: OutputFormat::Json,
         stats: true,
         ext: vec![],
+        signatures: false,
     
 };
 
@@ -397,6 +412,7 @@ fn test_stats_with_directory() {
         format: OutputFormat::Plain,
         stats: true,
         ext: vec![],
+        signatures: false,
     
 };
 

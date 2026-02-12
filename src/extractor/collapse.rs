@@ -74,6 +74,16 @@ fn collect_fn_bodies(node: Node, ranges: &mut Vec<(usize, usize)>) {
 /// Build line mappings for a collapsed block.
 /// Uses the already-collapsed content string and maps each output line
 /// back to its original source line number.
+pub fn build_collapsed_block_mappings_pub(
+    source: &str,
+    end_byte: usize,
+    body_ranges: &[(usize, usize)],
+    start_line: usize,
+    collapsed_content: &str,
+) -> Vec<(usize, String)> {
+    build_collapsed_block_mappings(source, end_byte, body_ranges, start_line, collapsed_content)
+}
+
 fn build_collapsed_block_mappings(
     source: &str,
     end_byte: usize,

@@ -25,6 +25,7 @@ pub struct ProcessOptions {
     pub format: OutputFormat,
     pub stats: bool,
     pub ext: Vec<String>,
+    pub signatures: bool,
 }
 
 /// Process a file or directory and return formatted output
@@ -40,9 +41,16 @@ pub fn process_path(
 
     let expand_mode = !options.symbols.is_empty();
     
+    // In signatures mode, first symbol is the class, rest are methods to expand
+    let (symbols, expand_methods) = if options.signatures && options.symbols.len() > 1 {
+        (vec![options.symbols[0].clone()], options.symbols[1..].to_vec())
+    } else {
+        (options.symbols.clone(), Vec::new())
+    };
+    
     let mut source_sizes: Vec<(usize, usize)> = Vec::new();
     let files_items: Vec<(String, Vec<Item>)> = if path.is_file() {
-        let (items, lines, bytes) = process_file(path, &options.symbols, expand_mode)?;
+        let (items, lines, bytes) = process_file(path, &symbols, expand_mode, options.signatures, &expand_methods)?;
         source_sizes.push((lines, bytes));
         vec![(path.to_string_lossy().to_string(), items)]
     } else if path.is_dir() {
@@ -56,7 +64,7 @@ pub fn process_path(
         };
         
         for file_path in files {
-            match process_file(&file_path, &options.symbols, expand_mode) {
+            match process_file(&file_path, &symbols, expand_mode, options.signatures, &expand_methods) {
                 Ok((items, lines, bytes)) => {
                     if expand_mode && !items.is_empty() {
                         // Remove found symbols from remaining set
@@ -143,6 +151,8 @@ fn process_file(
     path: &Path,
     symbols: &[String],
     expand_mode: bool,
+    signatures: bool,
+    expand_methods: &[String],
 ) -> Result<(Vec<Item>, usize, usize), CodeviewError> {
     let source = fs::read_to_string(path)
         .map_err(|e| CodeviewError::ReadError {
@@ -156,7 +166,9 @@ fn process_file(
     let language = languages::detect_language(path)?;
     let tree = parser::parse(&source, language)?;
 
-    let items = if expand_mode {
+    let items = if signatures && !symbols.is_empty() {
+        extractor::expand::extract_signatures(&source, &tree, &symbols[0], expand_methods, language)
+    } else if expand_mode {
         extractor::expand::extract(&source, &tree, symbols, language)
     } else {
         extractor::interface::extract(&source, &tree, language)

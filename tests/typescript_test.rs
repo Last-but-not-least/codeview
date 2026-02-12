@@ -13,6 +13,7 @@ fn opts() -> ProcessOptions {
         format: OutputFormat::Plain,
         stats: false,
         ext: vec![],
+        signatures: false,
     }
 
 }
