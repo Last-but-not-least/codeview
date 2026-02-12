@@ -124,6 +124,31 @@ $ codeview src/api.ts processData --max-lines 20
 
 Truncates after N lines with a `... [truncated: X more lines]` indicator. Works with `--signatures` too.
 
+### Line range extraction
+
+Extract a specific line range with structural context — shows which function/class/module the lines belong to:
+
+```sh
+$ codeview src/main.rs --lines 145-155
+```
+
+```
+// Inside: main
+L145:             if let Some(lines_arg) = cli.lines {
+L146:                 match codeview::extract_lines(&path, &lines_arg) {
+L147:                     Ok(output) => {
+L148:                         print!("{}", output);
+L149:                     }
+L150:                     Err(e) => {
+L151:                         eprintln!("Error: {}", e);
+L152:                         process::exit(1);
+L153:                     }
+L154:                 }
+L155:                 return;
+```
+
+Line numbers are 1-indexed and inclusive. Only works on single files, not directories.
+
 ### Structural search
 
 Grep with AST context — matches are annotated with their enclosing class/method:
@@ -309,6 +334,7 @@ api.js
 | `--search "pat"` | Structural grep (matches with AST context) |
 | `--max-results N` | Cap search output to N results (default: 20 for directories, unlimited for files) |
 | `-i`         | Case-insensitive search (with `--search`)    |
+| `--lines N-M` | Extract line range with structural context (1-indexed, inclusive) |
 | `--list-symbols` | Lightweight symbol listing (name, kind, line number) |
 | `--json`     | JSON output                                  |
 | `--stats`    | Show file/item counts instead of content     |
