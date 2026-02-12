@@ -70,6 +70,10 @@ struct Cli {
     /// Maximum number of search matches to display (default: 20 for directory search, unlimited for single-file)
     #[arg(long = "max-results", requires = "search")]
     max_results: Option<usize>,
+
+    /// List symbols with kind and line number (compact, one line per symbol)
+    #[arg(long = "list-symbols")]
+    list_symbols: bool,
 }
 
 #[derive(Subcommand)]
@@ -173,6 +177,7 @@ fn main() {
                 ext: cli.ext,
                 signatures: cli.signatures,
                 max_lines: cli.max_lines,
+                list_symbols: cli.list_symbols,
             };
             
             match process_path(&path, options) {
