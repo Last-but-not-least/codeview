@@ -90,6 +90,62 @@ src/lib.rs::new [12:14]
 14 |     }
 ```
 
+### Class signatures mode
+
+Inspect a class with method bodies collapsed — see the shape without the noise:
+
+```sh
+$ codeview src/api.ts UserService --signatures
+```
+
+```
+src/api.ts::UserService [11:30]
+11 | export class UserService {
+14 |     constructor(db: Database) { ... }
+18 |     public getUser(id: UserId): User | undefined { ... }
+22 |     public createUser(name: string, age: number): User { ... }
+27 |     private validate(user: User): boolean { ... }
+30 | }
+```
+
+Combine with specific method expansion — signatures for the class, full body for selected methods:
+
+```sh
+$ codeview src/api.ts UserService --signatures getUser
+```
+
+### Bounded expand
+
+Peek at large symbols without dumping the full body:
+
+```sh
+$ codeview src/api.ts processData --max-lines 20
+```
+
+Truncates after N lines with a `... [truncated: X more lines]` indicator. Works with `--signatures` too.
+
+### Structural search
+
+Grep with AST context — matches are annotated with their enclosing class/method:
+
+```sh
+$ codeview src/api.ts --search "validate"
+```
+
+```
+src/api.ts
+  UserService > createUser()
+    L24:     if (!this.validate(user)) {
+  UserService > validate()
+    L27:     private validate(user: User): boolean {
+```
+
+Supports regex, case-insensitive (`-i`), and directory search:
+
+```sh
+$ codeview src/ --search "TODO|FIXME" -i
+```
+
 ### Directory mode
 
 Point at a directory to walk all supported files:
@@ -218,6 +274,10 @@ api.js
 | `--no-tests` | Exclude test blocks (`#[cfg(test)]` in Rust)  |
 | `--depth N`  | Limit directory recursion (0 = target dir only) |
 | `--ext rs,ts` | Filter directory walk by file extension (comma-separated) |
+| `--signatures` | Class signatures mode (collapsed method bodies) |
+| `--max-lines N` | Truncate expanded output after N lines      |
+| `--search "pat"` | Structural grep (matches with AST context) |
+| `-i`         | Case-insensitive search (with `--search`)    |
 | `--json`     | JSON output                                  |
 | `--stats`    | Show file/item counts instead of content     |
 
@@ -318,6 +378,7 @@ src/
 │   ├── typescript.rs    # TypeScript/TSX-specific extraction
 │   ├── python.rs        # Python-specific extraction (classes, decorators)
 │   └── javascript.rs    # JavaScript/JSX-specific extraction
+├── search.rs            # Structural search (--search, AST-aware grep)
 ├── editor/              # Symbol-aware editing
 │   └── mod.rs           # replace, replace_body, delete, batch — with validation
 ├── output/              # Formatters
@@ -360,14 +421,16 @@ cp -r skill/ ~/.openclaw/workspace/skills/codeview/
 ### Example agent workflow
 
 ```
-1. Browse:  codeview src/           → see project shape
-2. Focus:   codeview src/lib.rs     → see file interface
-3. Read:    codeview src/lib.rs foo  → read specific function
-4. Edit:    codeview edit src/lib.rs foo --replace-body '{ new_impl }'
-5. Verify:  codeview src/lib.rs foo  → confirm the edit
+1. Search:  codeview src/ --search "keyword"                     → find where things live (with structural context)
+2. Browse:  codeview src/                                        → see project shape
+3. Focus:   codeview src/lib.rs                                  → see file interface
+4. Inspect: codeview src/lib.rs MyClass --signatures             → see class methods without bodies
+5. Read:    codeview src/lib.rs MyClass --signatures target_fn   → expand only the method you need
+6. Edit:    codeview edit src/lib.rs target_fn --replace-body '{ new_impl }'
+7. Verify:  codeview src/lib.rs target_fn                        → confirm the edit
 ```
 
-The skill dramatically reduces token usage compared to reading full files, and the syntax validation on edits prevents agents from introducing parse errors.
+The skill reduces token usage by giving agents structural awareness — collapsed views, class signatures, bounded expansion, and structural search replace brute-force file reading. The syntax validation on edits prevents agents from introducing parse errors.
 
 ## License
 
