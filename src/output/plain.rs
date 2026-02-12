@@ -1,5 +1,5 @@
 use crate::CodeviewError;
-use crate::extractor::Item;
+use crate::extractor::{Item, ItemKind};
 
 /// Format items as plain text with line numbers
 pub fn format_output(files: &[(String, Vec<Item>)], expand_mode: bool, max_lines: Option<usize>) -> Result<String, CodeviewError> {
@@ -51,6 +51,41 @@ pub fn format_output(files: &[(String, Vec<Item>)], expand_mode: bool, max_lines
                 output.push_str(&format_item(item));
                 output.push('\n');
             }
+        }
+    }
+
+    Ok(output)
+}
+
+pub fn format_list_symbols(files: &[(String, Vec<Item>)]) -> Result<String, CodeviewError> {
+    use std::fmt::Write;
+    let mut output = String::new();
+
+    for (file_path, items) in files {
+        if items.is_empty() {
+            continue;
+        }
+
+        writeln!(output, "{}", file_path).unwrap();
+
+        for item in items {
+            let kind_label = match item.kind {
+                ItemKind::Function => "fn",
+                ItemKind::Method => "fn",
+                ItemKind::Struct => "struct",
+                ItemKind::Enum => "enum",
+                ItemKind::Trait => "trait",
+                ItemKind::Impl => "impl",
+                ItemKind::Mod => "mod",
+                ItemKind::Use => "use",
+                ItemKind::Const => "const",
+                ItemKind::Static => "static",
+                ItemKind::TypeAlias => "type",
+                ItemKind::MacroDef => "macro",
+                ItemKind::Class => "class",
+            };
+            let name = item.name.as_deref().unwrap_or("-");
+            writeln!(output, "  {} {:<30} L{}", kind_label, name, item.line_start).unwrap();
         }
     }
 
