@@ -50,6 +50,10 @@ struct Cli {
     /// Filter by file extensions (comma-separated, e.g. --ext rs,ts)
     #[arg(long, value_delimiter = ',')]
     ext: Vec<String>,
+
+    /// Show class with method signatures collapsed (use with a class symbol)
+    #[arg(long)]
+    signatures: bool,
 }
 
 #[derive(Subcommand)]
@@ -129,6 +133,7 @@ fn main() {
                 format,
                 stats: cli.stats,
                 ext: cli.ext,
+                signatures: cli.signatures,
             };
             
             match process_path(&path, options) {
