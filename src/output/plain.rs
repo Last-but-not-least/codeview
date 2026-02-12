@@ -2,7 +2,7 @@ use crate::CodeviewError;
 use crate::extractor::Item;
 
 /// Format items as plain text with line numbers
-pub fn format_output(files: &[(String, Vec<Item>)], expand_mode: bool) -> Result<String, CodeviewError> {
+pub fn format_output(files: &[(String, Vec<Item>)], expand_mode: bool, max_lines: Option<usize>) -> Result<String, CodeviewError> {
     let mut output = String::new();
 
     for (file_path, items) in files {
@@ -24,7 +24,22 @@ pub fn format_output(files: &[(String, Vec<Item>)], expand_mode: bool) -> Result
                         file_path, item.line_start, item.line_end
                     ));
                 }
-                output.push_str(&format_item(item));
+                let formatted = format_item(item);
+                if let Some(max) = max_lines {
+                    let lines: Vec<&str> = formatted.lines().collect();
+                    if lines.len() > max {
+                        for line in &lines[..max] {
+                            output.push_str(line);
+                            output.push('\n');
+                        }
+                        let remaining = lines.len() - max;
+                        output.push_str(&format!("  ... [truncated: {} more lines]\n", remaining));
+                    } else {
+                        output.push_str(&formatted);
+                    }
+                } else {
+                    output.push_str(&formatted);
+                }
                 output.push('\n');
             }
         } else {
@@ -109,7 +124,7 @@ mod tests {
     fn format_output_interface_mode() {
         let item = make_item("bar", "fn bar() {}", 1, 1);
         let files = vec![("src/lib.rs".to_string(), vec![item])];
-        let result = format_output(&files, false).unwrap();
+        let result = format_output(&files, false, None).unwrap();
         assert!(result.starts_with("src/lib.rs\n"));
         assert!(result.contains("fn bar() {}"));
     }
@@ -118,7 +133,7 @@ mod tests {
     fn format_output_expand_mode() {
         let item = make_item("bar", "fn bar() {}", 1, 1);
         let files = vec![("src/lib.rs".to_string(), vec![item])];
-        let result = format_output(&files, true).unwrap();
+        let result = format_output(&files, true, None).unwrap();
         assert!(result.contains("src/lib.rs::bar [1:1]"));
     }
 
@@ -127,14 +142,14 @@ mod tests {
         let mut item = make_item("bar", "use std::io;", 1, 1);
         item.name = None;
         let files = vec![("src/lib.rs".to_string(), vec![item])];
-        let result = format_output(&files, true).unwrap();
+        let result = format_output(&files, true, None).unwrap();
         assert!(result.contains("src/lib.rs [1:1]"));
     }
 
     #[test]
     fn format_output_skips_empty_files() {
         let files = vec![("empty.rs".to_string(), vec![])];
-        let result = format_output(&files, false).unwrap();
+        let result = format_output(&files, false, None).unwrap();
         assert!(result.is_empty());
     }
 }

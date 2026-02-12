@@ -14,6 +14,7 @@ fn opts() -> ProcessOptions {
         stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     }
 
 }

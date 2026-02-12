@@ -54,6 +54,10 @@ struct Cli {
     /// Show class with method signatures collapsed (use with a class symbol)
     #[arg(long)]
     signatures: bool,
+
+    /// Truncate expanded symbol output after N lines
+    #[arg(long = "max-lines")]
+    max_lines: Option<usize>,
 }
 
 #[derive(Subcommand)]
@@ -134,6 +138,7 @@ fn main() {
                 stats: cli.stats,
                 ext: cli.ext,
                 signatures: cli.signatures,
+                max_lines: cli.max_lines,
             };
             
             match process_path(&path, options) {

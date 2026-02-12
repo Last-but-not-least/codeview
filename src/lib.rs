@@ -26,6 +26,7 @@ pub struct ProcessOptions {
     pub stats: bool,
     pub ext: Vec<String>,
     pub signatures: bool,
+    pub max_lines: Option<usize>,
 }
 
 /// Process a file or directory and return formatted output
@@ -140,7 +141,7 @@ pub fn process_path(
         output::stats::format_output(&filtered, &source_sizes, options.format)
     } else {
         match options.format {
-            OutputFormat::Plain => output::plain::format_output(&filtered, expand_mode),
+            OutputFormat::Plain => output::plain::format_output(&filtered, expand_mode, options.max_lines),
             OutputFormat::Json => output::json::format_output(&filtered),
         }
     }
