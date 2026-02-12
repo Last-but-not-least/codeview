@@ -202,12 +202,13 @@ pub fn extract_lines(path_str: &str, lines_arg: &str) -> Result<String, Codeview
     // Extract and format lines
     let lines: Vec<&str> = source.lines().collect();
     let width = end.to_string().len().max(start.to_string().len());
-    for i in (start - 1)..end {
-        writeln!(output, "L{:<width$}: {}", i + 1, lines[i], width = width).unwrap();
+    for (i, line) in lines.iter().enumerate().take(end).skip(start - 1) {
+        writeln!(output, "L{:<width$}: {}", i + 1, line, width = width).unwrap();
     }
 
     Ok(output)
 }
+
 
 fn parse_line_range(arg: &str) -> Result<(usize, usize), CodeviewError> {
     let parts: Vec<&str> = arg.split('-').collect();
