@@ -5,6 +5,7 @@ mod languages;
 mod output;
 mod walk;
 pub mod editor;
+pub mod search;
 
 use std::fs;
 use std::path::Path;
