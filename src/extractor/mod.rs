@@ -79,14 +79,33 @@ pub enum Visibility {
 /// Walk backwards through preceding `attribute_item` siblings to find the true start
 /// of an attributed item (byte offset, 1-based line number).
 pub fn find_attr_start(node: tree_sitter::Node) -> (usize, usize) {
-    let mut start = node;
+    let mut start_byte = node.start_byte();
+    let mut start_row = node.start_position().row;
+    // Walk backward through siblings looking for attributes/decorators
+    let mut current = node;
     loop {
-        match start.prev_sibling() {
-            Some(prev) if prev.kind() == "attribute_item" => start = prev,
+        match current.prev_sibling() {
+            Some(prev) if prev.kind() == "attribute_item" || prev.kind() == "decorator" => {
+                start_byte = prev.start_byte();
+                start_row = prev.start_position().row;
+                current = prev;
+            }
             _ => break,
         }
     }
-    (start.start_byte(), start.start_position().row + 1)
+    // For nodes inside export_statement (e.g. class_declaration), check if the
+    // parent export_statement has decorator children that precede this node
+    if let Some(parent) = node.parent() {
+        if parent.kind() == "export_statement" {
+            if let Some(first_child) = parent.child(0) {
+                if first_child.kind() == "decorator" && first_child.start_byte() < start_byte {
+                    start_byte = first_child.start_byte();
+                    start_row = first_child.start_position().row;
+                }
+            }
+        }
+    }
+    (start_byte, start_row + 1)
 }
 
 impl Visibility {

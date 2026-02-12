@@ -41,7 +41,7 @@ fn extract_with_extractor(source: &str, tree: &Tree, language: Language, extract
             let mut c = item_node.walk();
             for child in item_node.children(&mut c) {
                 let ck = child.kind();
-                if ck != "export" && ck != ";" && ck != "default" && ck != "comment" {
+                if ck != "export" && ck != ";" && ck != "default" && ck != "comment" && ck != "decorator" {
                     inner = Some(child);
                     break;
                 }
