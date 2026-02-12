@@ -14,6 +14,7 @@ fn test_interface_mode_basic() {
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
     
@@ -42,6 +43,7 @@ fn test_expand_mode() {
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
     
@@ -67,6 +69,7 @@ fn test_expand_function() {
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
     
@@ -90,6 +93,7 @@ fn test_pub_filter() {
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
     
@@ -116,6 +120,7 @@ fn test_fns_filter() {
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
     
@@ -143,6 +148,7 @@ fn test_types_filter() {
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
     
@@ -171,6 +177,7 @@ fn test_combined_pub_fns() {
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
     
@@ -201,6 +208,7 @@ fn test_json_output() {
         format: OutputFormat::Json, stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
     
@@ -232,6 +240,7 @@ fn test_nonexistent_path() {
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
     
@@ -252,6 +261,7 @@ fn test_directory_mode() {
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
     
@@ -275,6 +285,7 @@ fn test_expand_nonexistent_symbol() {
         format: OutputFormat::Plain, stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
     
@@ -302,6 +313,7 @@ fn test_no_tests_filter() {
         stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
 
@@ -332,6 +344,7 @@ fn test_no_tests_filter_disabled() {
         stats: false,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
 
@@ -356,6 +369,7 @@ fn test_stats_output_plain() {
         stats: true,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
 
@@ -384,6 +398,7 @@ fn test_stats_output_json() {
         stats: true,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
 
@@ -413,6 +428,7 @@ fn test_stats_with_directory() {
         stats: true,
         ext: vec![],
         signatures: false,
+        max_lines: None,
     
 };
 
