@@ -34,7 +34,7 @@ pub fn walk_directory(path: &Path, max_depth: Option<usize>, ext_filter: &[Strin
     for entry in builder.build() {
         let entry = entry.map_err(|e| CodeviewError::ReadError {
             path: path.display().to_string(),
-            source: std::io::Error::new(std::io::ErrorKind::Other, e.to_string()),
+            source: std::io::Error::other(e.to_string()),
         })?;
 
         let entry_path = entry.path();

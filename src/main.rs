@@ -126,7 +126,7 @@ fn main() {
     
     match cli.command {
         Some(Commands::Edit { file, symbol, replace, replace_body, stdin, delete, batch, dry_run, json }) => {
-            if let Err(e) = handle_edit(&file, &symbol, replace, replace_body, stdin, delete, batch, dry_run, json) {
+            if let Err(e) = handle_edit(&file, &symbol, EditOptions { replace, replace_body, stdin, delete, batch, dry_run, json }) {
                 eprintln!("Error: {}", e);
                 process::exit(1);
             }
@@ -211,9 +211,7 @@ fn main() {
     }
 }
 
-fn handle_edit(
-    file: &str,
-    symbol: &str,
+struct EditOptions {
     replace: Option<String>,
     replace_body: Option<String>,
     stdin: bool,
@@ -221,7 +219,14 @@ fn handle_edit(
     batch: Option<String>,
     dry_run: bool,
     json: bool,
+}
+
+fn handle_edit(
+    file: &str,
+    symbol: &str,
+    opts: EditOptions,
 ) -> Result<(), CodeviewError> {
+    let EditOptions { replace, replace_body, stdin, delete, batch, dry_run, json } = opts;
     let path = Path::new(file);
     if !path.exists() {
         return Err(CodeviewError::PathNotFound(file.to_string()));
