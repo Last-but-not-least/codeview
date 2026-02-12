@@ -146,6 +146,36 @@ Supports regex, case-insensitive (`-i`), and directory search:
 $ codeview src/ --search "TODO|FIXME" -i
 ```
 
+Cap search results with `--max-results`:
+
+```sh
+$ codeview src/ --search "validate" --max-results 5
+```
+
+For directory search, results default to 20 unless overridden.
+
+### List symbols
+
+Lightweight symbol enumeration — one line per symbol with kind and line number:
+
+```sh
+$ codeview src/lib.rs --list-symbols
+```
+
+```
+src/lib.rs
+  struct User                          L5
+  fn     new                           L12
+  fn     greeting                      L16
+  fn     validate_email                L20
+```
+
+Works with directory mode and filters:
+
+```sh
+$ codeview src/ --list-symbols --pub --fns
+```
+
 ### Directory mode
 
 Point at a directory to walk all supported files:
@@ -277,7 +307,9 @@ api.js
 | `--signatures` | Class signatures mode (collapsed method bodies) |
 | `--max-lines N` | Truncate expanded output after N lines      |
 | `--search "pat"` | Structural grep (matches with AST context) |
+| `--max-results N` | Cap search output to N results (default: 20 for directories, unlimited for files) |
 | `-i`         | Case-insensitive search (with `--search`)    |
+| `--list-symbols` | Lightweight symbol listing (name, kind, line number) |
 | `--json`     | JSON output                                  |
 | `--stats`    | Show file/item counts instead of content     |
 
