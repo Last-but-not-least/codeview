@@ -152,6 +152,91 @@ pub fn process_path(
 }
 
 /// Returns (items, lines, bytes)
+/// Extract a line range from a file with structural context.
+///
+/// `lines_arg` should be in the format "N-M" (1-indexed, inclusive).
+/// Returns formatted output with an enclosing-symbol context header and line numbers.
+pub fn extract_lines(path_str: &str, lines_arg: &str) -> Result<String, CodeviewError> {
+    use std::fmt::Write;
+
+    let path = Path::new(path_str);
+    if !path.exists() {
+        return Err(CodeviewError::PathNotFound(path.display().to_string()));
+    }
+    if path.is_dir() {
+        return Err(CodeviewError::InvalidPath(
+            "--lines only works on single files, not directories".to_string(),
+        ));
+    }
+
+    // Parse the range
+    let (start, end) = parse_line_range(lines_arg)?;
+
+    let source = fs::read_to_string(path).map_err(|e| CodeviewError::ReadError {
+        path: path.display().to_string(),
+        source: e,
+    })?;
+
+    let total_lines = source.lines().count();
+    if start > total_lines {
+        return Err(CodeviewError::ParseError(format!(
+            "Start line {} is beyond end of file ({} lines)",
+            start, total_lines
+        )));
+    }
+    let end = end.min(total_lines);
+
+    let language = languages::detect_language(path)?;
+    let tree = parser::parse(&source, language)?;
+
+    // Find enclosing symbols for the start line (0-indexed for tree-sitter)
+    let symbols = search::find_enclosing_symbols(&tree, &source, start - 1, language);
+
+    let mut output = String::new();
+
+    // Context header
+    if !symbols.is_empty() {
+        writeln!(output, "// Inside: {}", symbols.join(" > ")).unwrap();
+    }
+
+    // Extract and format lines
+    let lines: Vec<&str> = source.lines().collect();
+    let width = end.to_string().len().max(start.to_string().len());
+    for i in (start - 1)..end {
+        writeln!(output, "L{:<width$}: {}", i + 1, lines[i], width = width).unwrap();
+    }
+
+    Ok(output)
+}
+
+fn parse_line_range(arg: &str) -> Result<(usize, usize), CodeviewError> {
+    let parts: Vec<&str> = arg.split('-').collect();
+    if parts.len() != 2 {
+        return Err(CodeviewError::ParseError(format!(
+            "Invalid line range '{}': expected format N-M (e.g. 50-75)",
+            arg
+        )));
+    }
+    let start: usize = parts[0].parse().map_err(|_| {
+        CodeviewError::ParseError(format!("Invalid start line '{}' in range", parts[0]))
+    })?;
+    let end: usize = parts[1].parse().map_err(|_| {
+        CodeviewError::ParseError(format!("Invalid end line '{}' in range", parts[1]))
+    })?;
+    if start == 0 {
+        return Err(CodeviewError::ParseError(
+            "Line numbers are 1-indexed; start line cannot be 0".to_string(),
+        ));
+    }
+    if start > end {
+        return Err(CodeviewError::ParseError(format!(
+            "Inverted range: start line {} is after end line {}",
+            start, end
+        )));
+    }
+    Ok((start, end))
+}
+
 fn process_file(
     path: &Path,
     symbols: &[String],

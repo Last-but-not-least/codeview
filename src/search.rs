@@ -139,7 +139,7 @@ fn search_file(
 }
 
 /// Find the enclosing symbol hierarchy for a given line (0-indexed).
-fn find_enclosing_symbols(
+pub fn find_enclosing_symbols(
     tree: &Tree,
     source: &str,
     line_idx: usize,

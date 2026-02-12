@@ -74,6 +74,10 @@ struct Cli {
     /// List symbols with kind and line number (compact, one line per symbol)
     #[arg(long = "list-symbols")]
     list_symbols: bool,
+
+    /// Extract a line range with structural context (e.g. --lines 50-75)
+    #[arg(long)]
+    lines: Option<String>,
 }
 
 #[derive(Subcommand)]
@@ -136,6 +140,20 @@ fn main() {
                     process::exit(1);
                 }
             };
+
+            // Handle --lines mode
+            if let Some(lines_arg) = cli.lines {
+                match codeview::extract_lines(&path, &lines_arg) {
+                    Ok(output) => {
+                        print!("{}", output);
+                    }
+                    Err(e) => {
+                        eprintln!("Error: {}", e);
+                        process::exit(1);
+                    }
+                }
+                return;
+            }
 
             // Handle --search mode
             if let Some(pattern) = cli.search {
