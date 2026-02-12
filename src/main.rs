@@ -66,6 +66,10 @@ struct Cli {
     /// Case-insensitive search (use with --search)
     #[arg(short = 'i', requires = "search")]
     case_insensitive: bool,
+
+    /// Maximum number of search matches to display (default: 20 for directory search, unlimited for single-file)
+    #[arg(long = "max-results", requires = "search")]
+    max_results: Option<usize>,
 }
 
 #[derive(Subcommand)]
@@ -131,11 +135,13 @@ fn main() {
 
             // Handle --search mode
             if let Some(pattern) = cli.search {
+                let is_dir = Path::new(&path).is_dir();
                 let search_opts = search::SearchOptions {
                     pattern,
                     case_insensitive: cli.case_insensitive,
                     depth: cli.depth,
                     ext: cli.ext,
+                    max_results: cli.max_results.or(if is_dir { Some(20) } else { None }),
                 };
                 match search::search_path(&path, &search_opts) {
                     Ok(output) => {

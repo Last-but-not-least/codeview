@@ -23,6 +23,7 @@ pub struct SearchOptions {
     pub case_insensitive: bool,
     pub depth: Option<usize>,
     pub ext: Vec<String>,
+    pub max_results: Option<usize>,
 }
 
 /// Perform structural search on a path (file or directory).
@@ -67,6 +68,42 @@ pub fn search_path(
     } else {
         return Err(CodeviewError::InvalidPath(path.display().to_string()));
     };
+
+    // Apply max_results cap
+    if let Some(max) = options.max_results {
+        let total_matches: usize = file_results.iter().map(|(_, m)| m.len()).sum();
+        if total_matches > max {
+            let overflow = total_matches - max;
+            let mut kept = 0;
+            let mut capped_results: Vec<(String, Vec<SearchMatch>)> = Vec::new();
+            let mut overflow_files = 0usize;
+
+            for (file_path, matches) in file_results {
+                if kept >= max {
+                    overflow_files += 1;
+                    continue;
+                }
+                let remaining = max - kept;
+                if matches.len() <= remaining {
+                    kept += matches.len();
+                    capped_results.push((file_path, matches));
+                } else {
+                    let taken: Vec<SearchMatch> = matches.into_iter().take(remaining).collect();
+                    kept += taken.len();
+                    capped_results.push((file_path, taken));
+                }
+            }
+
+            // Count how many files had matches that were completely excluded
+            let total_files_with_matches = capped_results.len() + overflow_files;
+            let shown_files = capped_results.len();
+            let extra_files = total_files_with_matches - shown_files;
+
+            let mut output = format_search_results(&capped_results);
+            writeln!(output, "\n... and {} more matches across {} files", overflow, extra_files).unwrap();
+            return Ok(output);
+        }
+    }
 
     Ok(format_search_results(&file_results))
 }
@@ -311,6 +348,7 @@ fn goodbye() {
             case_insensitive: false,
             depth: None,
             ext: vec![],
+            max_results: None,
         };
         let result = search_path(&path, &opts).unwrap();
         assert!(result.contains("hello"));
@@ -332,6 +370,7 @@ fn goodbye() {
             case_insensitive: false,
             depth: None,
             ext: vec![],
+            max_results: None,
         };
         let result = search_path(&path, &opts).unwrap();
         assert!(!result.contains("Message"));
@@ -342,6 +381,7 @@ fn goodbye() {
             case_insensitive: true,
             depth: None,
             ext: vec![],
+            max_results: None,
         };
         let result = search_path(&path, &opts).unwrap();
         assert!(result.contains("Message"));
@@ -361,6 +401,7 @@ fn goodbye() {
             case_insensitive: false,
             depth: None,
             ext: vec![],
+            max_results: None,
         };
         let result = search_path(&path, &opts).unwrap();
         assert!(result.contains("L2:"));
@@ -379,6 +420,7 @@ fn goodbye() {
             case_insensitive: false,
             depth: None,
             ext: vec![],
+            max_results: None,
         };
         let result = search_path(&dir.path().to_string_lossy().as_ref(), &opts).unwrap();
         assert!(result.contains("a.rs"));
@@ -394,6 +436,7 @@ fn goodbye() {
             case_insensitive: false,
             depth: None,
             ext: vec![],
+            max_results: None,
         };
         let result = search_path(&path, &opts).unwrap();
         assert!(result.is_empty());
@@ -408,6 +451,7 @@ fn goodbye() {
             case_insensitive: false,
             depth: None,
             ext: vec![],
+            max_results: None,
         };
         let result = search_path(&path, &opts).unwrap();
         assert!(result.contains("(top-level)"));
@@ -431,6 +475,7 @@ fn goodbye() {
             case_insensitive: false,
             depth: None,
             ext: vec![],
+            max_results: None,
         };
         let result = search_path(&path, &opts).unwrap();
         assert!(result.contains("MyClass"));
@@ -454,9 +499,66 @@ impl Foo {
             case_insensitive: false,
             depth: None,
             ext: vec![],
+            max_results: None,
         };
         let result = search_path(&path, &opts).unwrap();
         assert!(result.contains("impl Foo"));
         assert!(result.contains("bar"));
+    }
+
+    #[test]
+    fn test_max_results_caps_directory_search() {
+        let dir = TempDir::new().unwrap();
+        fs::create_dir(dir.path().join(".git")).unwrap();
+        // Create files with many matches
+        write_rs_file(&dir, "a.rs", "fn f1() { target(); }\nfn f2() { target(); }\nfn f3() { target(); }\n");
+        write_rs_file(&dir, "b.rs", "fn g1() { target(); }\nfn g2() { target(); }\nfn g3() { target(); }\n");
+        let opts = SearchOptions {
+            pattern: "target".to_string(),
+            case_insensitive: false,
+            depth: None,
+            ext: vec![],
+            max_results: Some(3),
+        };
+        let result = search_path(&dir.path().to_string_lossy().as_ref(), &opts).unwrap();
+        // Should contain the summary line
+        assert!(result.contains("... and 3 more matches across"));
+    }
+
+    #[test]
+    fn test_max_results_no_cap_when_under_limit() {
+        let dir = TempDir::new().unwrap();
+        let path = write_rs_file(&dir, "test.rs", "fn foo() { target(); }\n");
+        let opts = SearchOptions {
+            pattern: "target".to_string(),
+            case_insensitive: false,
+            depth: None,
+            ext: vec![],
+            max_results: Some(10),
+        };
+        let result = search_path(&path, &opts).unwrap();
+        assert!(!result.contains("... and"));
+    }
+
+    #[test]
+    fn test_single_file_no_default_cap() {
+        let dir = TempDir::new().unwrap();
+        // 25 matches in a single file - should all show (no default cap for single file)
+        let mut content = String::new();
+        for i in 0..25 {
+            content.push_str(&format!("fn f{}() {{ target(); }}\n", i));
+        }
+        let path = write_rs_file(&dir, "test.rs", &content);
+        let opts = SearchOptions {
+            pattern: "target".to_string(),
+            case_insensitive: false,
+            depth: None,
+            ext: vec![],
+            max_results: None, // single-file default: no cap
+        };
+        let result = search_path(&path, &opts).unwrap();
+        assert!(!result.contains("... and"));
+        // All 25 matches should be present
+        assert!(result.contains("f24"));
     }
 }
