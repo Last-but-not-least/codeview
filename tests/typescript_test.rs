@@ -267,6 +267,108 @@ fn ts_stats_json() {
     assert!(parsed.is_object() || parsed.is_array(), "Should be structured JSON");
 }
 
+// --- Decorator support (issue #29) ---
+
+#[test]
+fn ts_decorated_exported_class_interface() {
+    let src = r#"import { Service } from 'typedi';
+
+@Service()
+export class MyService {
+  getName(): string {
+    return 'hello';
+  }
+}
+"#;
+    let f = write_ts(src);
+    let output = process_path(f.path().to_str().unwrap(), opts()).unwrap();
+
+    assert!(output.contains("@Service()"), "Missing decorator");
+    assert!(output.contains("class MyService"), "Missing class");
+    assert!(output.contains("getName()"), "Missing method");
+}
+
+#[test]
+fn ts_decorated_non_exported_class() {
+    let src = r#"@Injectable()
+class PlainDecorated {
+  value: number = 42;
+}
+"#;
+    let f = write_ts(src);
+    let output = process_path(f.path().to_str().unwrap(), opts()).unwrap();
+
+    assert!(output.contains("@Injectable()"), "Missing decorator");
+    assert!(output.contains("class PlainDecorated"), "Missing class");
+}
+
+#[test]
+fn ts_multiple_stacked_decorators() {
+    let src = r#"@A()
+@B()
+class MultiDecorator {
+  run(): void {}
+}
+"#;
+    let f = write_ts(src);
+    let output = process_path(f.path().to_str().unwrap(), opts()).unwrap();
+
+    assert!(output.contains("@A()"), "Missing first decorator");
+    assert!(output.contains("@B()"), "Missing second decorator");
+    assert!(output.contains("class MultiDecorator"), "Missing class");
+}
+
+#[test]
+fn ts_decorated_abstract_class() {
+    let src = r#"@Controller()
+export abstract class BaseController {
+  abstract handle(): void;
+}
+"#;
+    let f = write_ts(src);
+    let output = process_path(f.path().to_str().unwrap(), opts()).unwrap();
+
+    assert!(output.contains("@Controller()"), "Missing decorator");
+    assert!(output.contains("abstract class BaseController"), "Missing abstract class");
+}
+
+#[test]
+fn ts_decorated_class_expand() {
+    let src = r#"@Service()
+export class MyService {
+  getName(): string {
+    return 'hello';
+  }
+}
+"#;
+    let f = write_ts(src);
+    let mut o = opts();
+    o.symbols = vec!["MyService".to_string()];
+    let output = process_path(f.path().to_str().unwrap(), o).unwrap();
+
+    assert!(output.contains("@Service()"), "Missing decorator in expand");
+    assert!(output.contains("class MyService"), "Missing class in expand");
+    assert!(output.contains("return 'hello'"), "Missing body in expand");
+}
+
+#[test]
+fn ts_property_decorators_not_regressed() {
+    let src = r#"class Entity {
+  @Column()
+  name: string = '';
+
+  @Inject()
+  service: any;
+}
+"#;
+    let f = write_ts(src);
+    let output = process_path(f.path().to_str().unwrap(), opts()).unwrap();
+
+    assert!(output.contains("class Entity"), "Missing class");
+    assert!(output.contains("@Column()"), "Missing property decorator");
+    assert!(output.contains("name: string"), "Missing property");
+}
+
 // --- Combined filters ---
 
 #[test]
