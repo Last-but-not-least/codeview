@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use codeview::{editor, process_path, ProcessOptions, OutputFormat, Language, CodeviewError};
+use codeview::{editor, process_path, search, ProcessOptions, OutputFormat, Language, CodeviewError};
 use codeview::editor::{BatchEdit, EditResult};
 use std::{fs, io::{self, Read}, path::Path, process};
 
@@ -58,6 +58,14 @@ struct Cli {
     /// Truncate expanded symbol output after N lines
     #[arg(long = "max-lines")]
     max_lines: Option<usize>,
+
+    /// Search for pattern and show matches with structural context
+    #[arg(long)]
+    search: Option<String>,
+
+    /// Case-insensitive search (use with --search)
+    #[arg(short = 'i', requires = "search")]
+    case_insensitive: bool,
 }
 
 #[derive(Subcommand)]
@@ -120,6 +128,26 @@ fn main() {
                     process::exit(1);
                 }
             };
+
+            // Handle --search mode
+            if let Some(pattern) = cli.search {
+                let search_opts = search::SearchOptions {
+                    pattern,
+                    case_insensitive: cli.case_insensitive,
+                    depth: cli.depth,
+                    ext: cli.ext,
+                };
+                match search::search_path(&path, &search_opts) {
+                    Ok(output) => {
+                        print!("{}", output);
+                    }
+                    Err(e) => {
+                        eprintln!("Error: {}", e);
+                        process::exit(1);
+                    }
+                }
+                return;
+            }
             
             let format = if cli.json {
                 OutputFormat::Json
